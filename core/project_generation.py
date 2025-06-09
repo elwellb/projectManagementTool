@@ -179,6 +179,7 @@ def inject_config_stub(base_path):
     if not os.path.exists(config_file):
         with open(config_file, 'w') as f:
             json.dump(DEFAULT_CONFIG, f, indent=4)
-        print(f"Default config written to {config_file}")
+        #print(f"Default config written to {config_file}")
     else:
-        print(f"Config already exists at {config_file}")
+        #print(f"Config already exists at {config_file}")
+        return

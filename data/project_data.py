@@ -10,6 +10,7 @@ class ProjectStore:
         Initializes the ProjectStore by loading existing data.
         """
         self.data = load_data()
+        self.data.setdefault("projects", {})  # Ensure 'projects' key exists
 
     def save(self):
         """
@@ -53,3 +54,36 @@ class ProjectStore:
         if not any(a for a in self.data["projects"][project]["assets"] if a["name"] == asset_name and a["type"] == asset_type):
             self.data["projects"][project]["assets"].append(asset_entry)
             self.save()
+
+    def rename_project(self, old_name, new_name):
+        if new_name in self.data["projects"]:
+            raise ValueError(f"Project '{new_name}' already exists.")
+        self.data["projects"][new_name] = self.data["projects"].pop(old_name)
+        self.save()
+
+    def delete_project(self, name):
+        """
+        Deletes a project and all its associated assets.
+        """
+        if name in self.data["projects"]:
+            del self.data["projects"][name]
+            self.save()
+
+    def rename_asset(self, project, old_name, new_name):
+        """
+        Renames an asset within a project.
+        """
+        for asset in self.data["projects"].get(project, {}).get("assets", []):
+            if asset["name"] == old_name:
+                asset["name"] = new_name
+                break
+        self.save()
+
+    def delete_asset(self, project, asset_name):
+        """
+        Deletes an asset from a project.
+        """
+        self.data["projects"][project]["assets"] = [
+            a for a in self.data["projects"][project]["assets"] if a["name"] != asset_name]
+        self.save()
+                

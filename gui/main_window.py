@@ -1,6 +1,6 @@
-import os, re, datetime
+import os, re, datetime, shutil
 from PyQt5 import uic
-from PyQt5.QtWidgets import QWidget, QTableWidgetItem, QAbstractItemView, QMessageBox, QHeaderView
+from PyQt5.QtWidgets import QWidget, QTableWidgetItem, QAbstractItemView, QMessageBox, QHeaderView, QInputDialog
 from PyQt5.QtCore import QFile, Qt, QTimer
 
 from core.project_generation import create_project_structure, create_asset_structure
@@ -62,6 +62,10 @@ class MainWindow(QWidget):
         self.projectCombo.currentIndexChanged.connect(self.populate_asset_list)
         self.assetCreate.clicked.connect(self.create_asset)
         self.openAssetButton.clicked.connect(self.open_asset)
+        self.renameProj.clicked.connect(self.rename_project)
+        self.deleteProj.clicked.connect(self.delete_project)
+        self.renameAsset.clicked.connect(self.rename_asset)
+        self.deleteAsset.clicked.connect(self.delete_asset)
 
     def create_project(self):
         """
@@ -92,6 +96,17 @@ class MainWindow(QWidget):
         if self.projectCombo.count() > 0:
             self.assetCreate.setEnabled(True)
             self.openAssetButton.setEnabled(True)
+            self.renameProj.setEnabled(True)
+            self.deleteProj.setEnabled(True)
+            self.renameAsset.setEnabled(True)
+            self.deleteAsset.setEnabled(True)
+        else:
+            self.assetCreate.setEnabled(False)
+            self.openAssetButton.setEnabled(False)
+            self.renameProj.setEnabled(False)
+            self.deleteProj.setEnabled(False)
+            self.renameAsset.setEnabled(False)
+            self.deleteAsset.setEnabled(False)
         self.createTable()
 
     def create_asset(self):
@@ -242,3 +257,63 @@ class MainWindow(QWidget):
             open_in_photoshop(asset_path)
         elif asset_path.endswith(".txt"):
             open_in_txt_editor(asset_path)
+
+    def rename_project(self):
+        old_name = self.projectCombo.currentText()
+        new_name, ok = QInputDialog.getText(self, "Rename Project", "Enter new project name:")
+        if ok and is_valid_name(new_name):
+            os.rename(os.path.join(ROOT_DIR, "Projects", old_name), 
+                      os.path.join(ROOT_DIR, "Projects", new_name))
+            self.store.rename_project(old_name, new_name)
+            self.populate_project_combo()
+
+    def delete_project(self):
+        name = self.projectCombo.currentText()
+        confirm = QMessageBox.question(
+            self,
+            "Delete Project",
+            f"Are you sure you want to delete the project '{name}'? This action cannot be undone.",
+            QMessageBox.Yes | QMessageBox.No,
+        )
+        if confirm == QMessageBox.Yes:
+            shutil.rmtree(os.path.join(ROOT_DIR, "Projects", name), ignore_errors=True)
+            self.store.delete_project(name)
+            self.populate_project_combo()
+
+    def rename_asset(self):
+        row = self.assetTable.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, "No Selection", "Please select an asset to rename.")
+            return
+        old_name = self.assetTable.item(row, 0).text()
+        new_name, ok = QInputDialog.getText(self, "Rename Asset", "Enter new asset name:")
+        if ok and is_valid_name(new_name):
+            project = self.projectCombo.currentText()
+            self.store.rename_asset(project, old_name, new_name)
+            asset_type = self.assetTable.item(row, 1).text()
+            asset_subtype = self.assetTable.item(row, 2).text()
+            asset_path = os.path.join(ROOT_DIR, "Projects", project, "ArtDepot", asset_type, asset_subtype, old_name)
+            new_asset_path = os.path.join(ROOT_DIR, "Projects", project, "ArtDepot", asset_type, asset_subtype, new_name)
+            os.rename(asset_path, new_asset_path)
+            self.populate_asset_list()
+
+    def delete_asset(self):
+        row = self.assetTable.currentRow()
+        if row < 0:
+            QMessageBox.warning(self, "No Selection", "Please select an asset to delete.")
+            return
+        asset_name = self.assetTable.item(row, 0).text()
+        project = self.projectCombo.currentText()
+        confirm = QMessageBox.question(
+            self,
+            "Delete Asset",
+            f"Are you sure you want to delete the asset '{asset_name}'? This action cannot be undone.",
+            QMessageBox.Yes | QMessageBox.No,
+        )
+        if confirm == QMessageBox.Yes:
+            self.store.delete_asset(project, asset_name)
+            asset_type = self.assetTable.item(row, 1).text()
+            asset_subtype = self.assetTable.item(row, 2).text()
+            asset_path = os.path.join(ROOT_DIR, "Projects", project, "ArtDepot", asset_type, asset_subtype, asset_name)
+            shutil.rmtree(asset_path, ignore_errors=True)
+            self.populate_asset_list()

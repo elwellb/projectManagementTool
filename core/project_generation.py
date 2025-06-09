@@ -1,15 +1,20 @@
 import os
 import shutil
-from utils.file_utils import ensure_dir, ROOT_DIR, sanitize_name
+from utils.file_utils import ensure_dir, ROOT_DIR
 
 def create_project_structure(project="NewProject"):
-    """ Create the directory structure for a new project under a branch. """
-    # Global tools and config
+    """
+    Create the directory structure for a new project under a branch.
+
+    This sets up global Tools and Config folders, then creates a set of
+    predefined subfolders under the specified project directory inside the Projects folder.
+    """
+    # Create global Tools and Config directories
     ensure_dir(os.path.join(ROOT_DIR, "Tools"))
     ensure_dir(os.path.join(ROOT_DIR, "Config"))
 
-    project = sanitize_name(project)
     base = os.path.join(ROOT_DIR, "Projects", project)
+    # List of subfolders to create within the project
     subfolders = [
         "Tools",
         "Config",
@@ -42,24 +47,23 @@ def create_project_structure(project="NewProject"):
         "IntermediateDepot/VFX",
         "IntermediateDepot/Rigs",
     ]
+    # Create each subfolder
     for folder in subfolders:
         ensure_dir(os.path.join(base, folder))
     return base
 
-
 def create_asset_structure(project, asset_type, asset_name, reference=None):
-    """ 
-    Create the directory structure for a new asset under a level in GameDepot.
-    Also creates subfolder for maya source file in ArtDepot.
     """
-    project = sanitize_name(project)
-    asset_name = sanitize_name(asset_name)
+    Create the directory structure for a new asset under a level in GameDepot.
+    Also creates a subfolder for the Maya source file in ArtDepot.
+    """
     asset_parts = asset_type.split('/')
-    #print(asset_parts)
-
+    # asset_parts should be [category, subtype]
     category, subtype = asset_parts
     asset_root = os.path.join(ROOT_DIR, "Projects", project, "ArtDepot", category, subtype, asset_name)
     ensure_dir(asset_root)
+
+    # Prefix mapping for asset file names
     prefix_map = {
         "models": "SM",
         "rigs": "RIG",
@@ -69,6 +73,8 @@ def create_asset_structure(project, asset_type, asset_name, reference=None):
     }
     prefix = prefix_map.get(category.lower(), category.upper())
     asset_name = f"{prefix}_{asset_name}"
+
+    # Create the appropriate stub file based on asset category
     if category == "Models":
         create_model_stub(asset_root, asset_name)
     elif category == "Rigs":
@@ -82,44 +88,40 @@ def create_asset_structure(project, asset_type, asset_name, reference=None):
 
     return asset_root
 
-
 def create_model_stub(art_depot_path, asset_name):
-
+    """
+    Create a Maya ASCII model file from a template in the specified directory.
+    """
     from_path = os.path.join(os.path.dirname(__file__), "..", "file_templates", "model_template.ma")
     to_path = os.path.join(art_depot_path, f"{asset_name}.ma")
     shutil.copyfile(from_path, to_path)
 
 def create_rig_stub(art_depot_path, asset_name, subtype, reference):
-
+    """
+    Create a Maya ASCII rig file from a template and optionally reference a model.
+    """
     from_path = os.path.join(os.path.dirname(__file__), "..", "file_templates", "rig_template.ma")
     from_path = os.path.abspath(from_path)
     to_path = os.path.join(art_depot_path, f"{asset_name}.ma")
     shutil.copyfile(from_path, to_path)
 
+    # If a reference is provided, append a Maya file reference command
     if reference:
         relative_ref_path = f"../../../Models/{subtype}/{reference}/SM_{reference}.ma"
         with open(to_path, 'a') as f:
             f.write(f'\nfile -r -type "mayaAscii" -namespace "{reference}" "{relative_ref_path}";\n')
 
 def create_animation_stub(art_depot_path, asset_name, subtype, reference):
+    """
+    Create a Maya ASCII animation file from a template and optionally reference a rig.
+    """
     from_path = os.path.join(os.path.dirname(__file__), "..", "file_templates", "anim_template.ma")
     from_path = os.path.abspath(from_path)
     to_path = os.path.join(art_depot_path, f"{asset_name}.ma")
     shutil.copyfile(from_path, to_path)
 
+    # If a reference is provided, append a Maya file reference command
     if reference:
         relative_ref_path = f"../../../Rigs/{subtype}/{reference}/RIG_{reference}.ma"
         with open(to_path, 'a') as f:
             f.write(f'\nfile -r -type "mayaAscii" -namespace "{reference}" "{relative_ref_path}";\n')
-
-def create_texture_stub(art_depot_path, asset_name):
-    from_path = os.path.join(os.path.dirname(__file__), "..", "file_templates", "tex_template.psd")
-    from_path = os.path.abspath(from_path)
-    to_path = os.path.join(art_depot_path, f"{asset_name}.psd")
-    shutil.copyfile(from_path, to_path)
-
-def create_vfx_stub(art_depot_path, asset_name):
-    from_path = os.path.join(os.path.dirname(__file__), "..", "file_templates", "vfx_template.txt")
-    from_path = os.path.abspath(from_path)
-    to_path = os.path.join(art_depot_path, f"{asset_name}.txt")
-    shutil.copyfile(from_path, to_path)

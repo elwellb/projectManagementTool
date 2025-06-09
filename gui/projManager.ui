@@ -72,6 +72,9 @@
       </item>
       <item row="2" column="2">
        <widget class="QPushButton" name="assetCreate">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>+ New Asset</string>
         </property>
@@ -95,6 +98,9 @@
       </item>
       <item row="1" column="4">
        <widget class="QPushButton" name="openAssetButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>Open Asset</string>
         </property>

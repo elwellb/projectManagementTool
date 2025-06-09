@@ -59,7 +59,6 @@ class Ui_Form(object):
 
         self.assetCreate = QPushButton(self.verticalLayoutWidget)
         self.assetCreate.setObjectName(u"assetCreate")
-        self.assetCreate.setEnabled(False)
 
         self.gridLayout.addWidget(self.assetCreate, 2, 2, 1, 1)
 
@@ -69,7 +68,6 @@ class Ui_Form(object):
 
         self.openAssetButton = QPushButton(self.verticalLayoutWidget)
         self.openAssetButton.setObjectName(u"openAssetButton")
-        self.openAssetButton.setEnabled(False)
 
         self.gridLayout.addWidget(self.openAssetButton, 1, 4, 1, 1)
 

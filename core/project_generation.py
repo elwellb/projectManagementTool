@@ -1,4 +1,4 @@
-import os
+import os, json
 import shutil
 from utils.file_utils import ensure_dir, ROOT_DIR
 
@@ -50,6 +50,7 @@ def create_project_structure(project="NewProject"):
     # Create each subfolder
     for folder in subfolders:
         ensure_dir(os.path.join(base, folder))
+    inject_config_stub(base)
     return base
 
 def create_asset_structure(project, asset_type, asset_name, reference=None):
@@ -61,6 +62,7 @@ def create_asset_structure(project, asset_type, asset_name, reference=None):
     # asset_parts should be [category, subtype]
     category, subtype = asset_parts
     asset_root = os.path.join(ROOT_DIR, "Projects", project, "ArtDepot", category, subtype, asset_name)
+    inject_config_stub(asset_root)
     ensure_dir(asset_root)
 
     # Prefix mapping for asset file names
@@ -141,3 +143,42 @@ def create_vfx_stub(art_depot_path, asset_name):
     from_path = os.path.join(os.path.dirname(__file__), "..", "file_templates", "vfx_template.txt")
     to_path = os.path.join(art_depot_path, f"{asset_name}.txt")
     shutil.copyfile(from_path, to_path)
+
+DEFAULT_CONFIG = {
+    "dccs": {
+        "Maya": {
+            "version": "2024",
+            "path": "C:/Program Files/Autodesk/Maya2024/bin/maya.exe"
+        },
+        "Photoshop": {
+            "version": "2023",
+            "path": "C:/Program Files/Adobe/Adobe Photoshop 2023/Photoshop.exe"
+        }
+    },
+    "engines": {
+        "UnrealEngine": {
+            "version": "5.3",
+            "path": "C:/Program Files/Epic Games/UE_5.3/Engine/Binaries/Win64/UE5Editor.exe"
+        }
+    },
+    "tools": {
+        "CustomExporter": {
+            "version": "1.2.0"
+        },
+        "Validator": {
+            "version": "2.0.1"
+        }
+    }
+}
+
+def inject_config_stub(base_path):
+    config_path = os.path.join(base_path, "Config")
+    os.makedirs(config_path, exist_ok=True)
+
+    config_file = os.path.join(config_path, "config.json")
+    if not os.path.exists(config_file):
+        with open(config_file, 'w') as f:
+            json.dump(DEFAULT_CONFIG, f, indent=4)
+        print(f"Default config written to {config_file}")
+    else:
+        print(f"Config already exists at {config_file}")

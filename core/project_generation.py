@@ -125,3 +125,19 @@ def create_animation_stub(art_depot_path, asset_name, subtype, reference):
         relative_ref_path = f"../../../Rigs/{subtype}/{reference}/RIG_{reference}.ma"
         with open(to_path, 'a') as f:
             f.write(f'\nfile -r -type "mayaAscii" -namespace "{reference}" "{relative_ref_path}";\n')
+
+def create_texture_stub(art_depot_path, asset_name):
+    """
+    Create a Photoshop texture file from a template in the specified directory.
+    """
+    from_path = os.path.join(os.path.dirname(__file__), "..", "file_templates", "tex_template.psd")
+    to_path = os.path.join(art_depot_path, f"{asset_name}.psd")
+    shutil.copyfile(from_path, to_path)
+
+def create_vfx_stub(art_depot_path, asset_name):
+    """
+    Create a VFX stub file in the specified directory.
+    """
+    from_path = os.path.join(os.path.dirname(__file__), "..", "file_templates", "vfx_template.txt")
+    to_path = os.path.join(art_depot_path, f"{asset_name}.txt")
+    shutil.copyfile(from_path, to_path)

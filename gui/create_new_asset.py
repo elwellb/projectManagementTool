@@ -24,7 +24,7 @@ class CreateAssetDialog(QDialog):
         Connect UI signals to their respective slots for asset type/subtype changes.
         """
         self.assetTypeCombo.currentIndexChanged.connect(self.updateAssetSubtypeOptions)
-        self.assetTypeCombo.currentIndexChanged.connect(lambda _:self.populateReferenceCombo())
+        self.assetTypeCombo.currentIndexChanged.connect(lambda: self.populateReferenceCombo())
         self.charButton.toggled.connect(self.on_characters_selected)
         self.propButton.toggled.connect(self.on_props_selected)
 
@@ -120,6 +120,8 @@ class CreateAssetDialog(QDialog):
         if not self.projectName:
             return
         
+        if isinstance(subtype, int):
+            subtype = None
         # Determine subtype if not provided
         if subtype is None:
             if self.charButton.isChecked():
@@ -129,8 +131,8 @@ class CreateAssetDialog(QDialog):
             else:
                 return
             
-        print(self.projectName)
-        print(subtype)
+        #print(self.projectName)
+        #print(subtype)
 
         # Set reference directory based on asset type and subtype
         if self.assetTypeCombo.currentText() =="Rigs":
